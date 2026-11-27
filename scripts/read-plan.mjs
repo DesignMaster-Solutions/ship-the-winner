@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const execute = promisify(execFile);
 const MAX_AGE_MS = 24 * 3600_000;
@@ -8,7 +9,7 @@ const THRESHOLD = .95; // The First Click decision rule, chosen before the exper
 function requireThat(condition, message) {
   if (!condition) throw new Error(message);
 }
-function validateContext(context) {
+export function validateContext(context) {
   requireThat(/^[A-Za-z0-9_-]+$/.test(context.environment ?? ''), 'Invalid environment');
   requireThat(/^[A-Za-z0-9_-]+$/.test(context.flag ?? ''), 'Invalid flag');
   for (const key of ['experiment', 'metric']) {
@@ -76,10 +77,16 @@ export function decide({ experiment, results }, context, now = Date.now()) {
   report.status = 'approval_required';
   report.reason = 'Threshold reached; review the proposal. This command cannot apply it.';
   report.plan = { before: before.value, after: options[0].string_value, variant: options[0].key, variant_id: options[0].id };
+  report.approval_digest = planDigest(report);
   return report;
 }
 
-async function runCli(binary, args) {
+// The human approves this digest; ship.mjs recomputes it from fresh reads, so any change in between voids the approval.
+export function planDigest(r) {
+  const bound = [r.environment, r.experiment, r.flag, r.metric, r.as_of, r.chance_to_win, r.plan];
+  return createHash('sha256').update(JSON.stringify(bound)).digest('hex');
+}
+export async function runCli(binary, args) {
   try {
     const { stdout } = await execute(binary, args, { timeout: 30_000, maxBuffer: 2 * 1024 * 1024 });
     return stdout;

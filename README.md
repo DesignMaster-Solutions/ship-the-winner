@@ -2,7 +2,7 @@
 
 Agent module of [First Click](https://github.com/DesignMaster-Solutions/first-click), our **single project** for Toggle Wars (WeMakeDevs, Nov 26-29, 2026). The same project can enter Tracks 01, 02 and 04. [Rules 01 and 05](https://www.wemakedevs.org/hackathons/flagsmith/rules) allow one project per team and multiple tracks per project; this repository is a component, not a second submission.
 
-Status (Nov 26, 2026): the read/decide/propose path works through Flagsmith CLI 2.0.0 with tests. It performs two GET requests and cannot write, even if a result reaches 95%. Applying an approved rollout and verifying it are still pending; the whole-job workflow and its demo are not submission-ready yet.
+Status (Nov 27, 2026): read/decide/propose and approve/ship/verify work through Flagsmith CLI 2.0.0 with tests. `plan` performs two GETs and never writes. `ship` writes once, only with the approval digest printed by `plan`, after re-reading and re-deciding. The live First Click experiment is still inconclusive, so `ship` against it refuses with exit 1 and no write. The demo video is still pending.
 
 ## The job it finishes
 
@@ -11,7 +11,7 @@ Starting an experiment is one prompt. Ending it well is where teams stall: someo
 1. **Read**: find the running experiment for a flag and pull its current results (`flagsmith api`, read only).
 2. **Judge**: apply a decision rule written down before the test (ship only at 95% win probability or more; otherwise report "inconclusive" and change nothing).
 3. **Plan**: print the exact change it would make (flag, environment, value before and after) and stop.
-4. **Approve / ship / verify** (pending): bind approval to the exact proposal, recheck current state, complete the experiment through Flagsmith, and read back the applied rollout. A human yes alone does not make the current reader writable.
+4. **Approve / ship / verify**: `plan` prints `approval_digest`, a SHA-256 over environment, experiment, flag, metric, result timestamp, win probability and the before/after values. `npm run --silent ship -- <same args> --approve <digest>` re-reads both endpoints, re-runs the rule and refuses unless the fresh digest is identical (a new results snapshot, a changed rollout value or an experiment completed by someone else voids the approval). Then it sends exactly one `POST .../complete/` with `rollout_decision=variant` and the variant id ([contract](https://github.com/Flagsmith/flagsmith/blob/main/frontend/common/types/requests.ts), `CompleteExperimentBody`), reads the experiment back and reports `shipped` only if it is `completed` with that variant. A write that does not read back as planned exits 1 with "NOT verified" and is never retried.
 5. **Leave a trail**: the current reader emits a compact JSON decision record including the environment, flag, metric, result timestamp, raw counts and proposal.
 
 ## Run the reader
