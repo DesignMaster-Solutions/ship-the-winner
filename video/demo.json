@@ -1,0 +1,62 @@
+{
+  "brand": "Ship the Winner · First Click · Design Master Solutions LLC · Tracks 02 + 04",
+  "voice": "alan",
+  "lang": "en",
+  "rate": 170,
+  "bg": "#0f1b2d",
+  "accent": "#22c55e",
+  "out": "demo.mp4",
+  "scenes": [
+    {
+      "title": "Ending an experiment is the hard part",
+      "lines": [
+        "Read the result. Decide by a rule fixed up front.",
+        "Roll out the winner. Prove it shipped.",
+        "Ship the Winner does that last mile with the Flagsmith CLI."
+      ],
+      "say": "Starting a Flagsmith experiment takes one prompt. Ending it well is where teams stall. Ship the Winner is an agent skill that reads the result, applies a rule written before the test, asks a human to approve, ships the winner and reads it back."
+    },
+    {
+      "title": "Live experiment: inconclusive, nothing ships",
+      "mono_cmd": "npm run --silent plan -- --environment cEah9PMHR4vhyqmBX4o9FJ --experiment 525 --metric 509 --flag cta_text",
+      "mono_cwd": "..",
+      "mono_grep": [
+        "  \"status\"",
+        "  \"reason\"",
+        "  \"as_of\"",
+        "  \"writes_executed\""
+      ],
+      "say": "This is our live experiment on designmastersolutions dot com. Two GET calls, no writes. There is no inference yet, so the skill says inconclusive and changes nothing. That is the first case we test."
+    },
+    {
+      "title": "Disposable experiment: the rule is met",
+      "mono_cmd": "node demo/summary.mjs decisions/disposable-demo-plan-2026-11-27.json",
+      "mono_cwd": "..",
+      "say": "To prove the write path, a separate environment with its own flag got four hundred synthetic visitors through the official SDK. Flagsmith computed a ninety nine percent chance to win. Plan proposes the change, prints an approval digest, and still writes nothing."
+    },
+    {
+      "title": "Approve, ship once, read back",
+      "mono": [
+        "$ npm run ship -- ... --approve 0000...0000",
+        "Approval no longer matches the current experiment state; run plan again and re-approve",
+        "exit 1, no write",
+        "",
+        "$ npm run ship -- ... --approve 86df4258...976f",
+        "POST experiments/910/complete/  rollout_decision=variant  rollout_variant=37661",
+        "read back: completed / variant / 37661  ->  status: shipped, writes_executed: 1",
+        "",
+        "$ npm run ship -- ... --approve 86df4258...976f   (again)",
+        "Experiment must be running   exit 1",
+        "",
+        "12 of 12 fresh identities now get: Get a quote today"
+      ],
+      "say": "A wrong digest is refused with no write. The approved digest sends exactly one complete call, then the skill reads the experiment back and only reports shipped if Flagsmith confirms the variant. Running it again fails, so an approval cannot be replayed. Twelve new visitors all get the winner."
+    },
+    {
+      "title": "Tests and token cost",
+      "mono_cmd": "npm test 2>&1 | grep -E '(pass|fail) [0-9]+$' | cut -c3-; npm run --silent cost",
+      "mono_cwd": "..",
+      "say": "Fourteen tests pass, including mutants that ignore the digest or the variant id. The whole cycle costs the agent about six hundred and forty tokens of JSON, with no page scraping and no screenshots."
+    }
+  ]
+}

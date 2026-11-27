@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "plan": "node scripts/read-plan.mjs",
-    "ship": "node scripts/ship.mjs"
+    "ship": "node scripts/ship.mjs",
+    "cost": "uv run -q --no-project --with tiktoken python3 scripts/token_cost.py decisions/disposable-demo-plan-2026-11-27.json decisions/disposable-demo-shipped-2026-11-27.json"
   },
   "devDependencies": {
     "@flagsmith/cli": "2.0.0"

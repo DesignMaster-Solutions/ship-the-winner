@@ -1,3 +1,8 @@
 node_modules/
 .env
 .env.*
+video/s*.aiff
+video/s*.mp4
+video/s*.png
+video/list.txt
+video/render.log

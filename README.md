@@ -2,7 +2,7 @@
 
 Agent module of [First Click](https://github.com/DesignMaster-Solutions/first-click), our **single project** for Toggle Wars (WeMakeDevs, Nov 26-29, 2026). The same project can enter Tracks 01, 02 and 04. [Rules 01 and 05](https://www.wemakedevs.org/hackathons/flagsmith/rules) allow one project per team and multiple tracks per project; this repository is a component, not a second submission.
 
-Status (Nov 27, 2026): read/decide/propose and approve/ship/verify work through Flagsmith CLI 2.0.0 with tests. `plan` performs two GETs and never writes. `ship` writes once, only with the approval digest printed by `plan`, after re-reading and re-deciding. The live First Click experiment is still inconclusive, so `ship` against it refuses with exit 1 and no write. The full cycle has been proven end to end against real Flagsmith in a disposable environment (see *End-to-end proof* below). The demo video is still pending.
+Status (Nov 27, 2026): read/decide/propose and approve/ship/verify work through Flagsmith CLI 2.0.0 with tests. `plan` performs two GETs and never writes. `ship` writes once, only with the approval digest printed by `plan`, after re-reading and re-deciding. The live First Click experiment is still inconclusive, so `ship` against it refuses with exit 1 and no write. The full cycle has been proven end to end against real Flagsmith in a disposable environment (see *End-to-end proof* below). Demo video (92 s): https://youtu.be/WlBlK1AnmOo
 
 ## The job it finishes
 
@@ -51,7 +51,10 @@ The live experiment cannot reach 95% inside the hackathon, so the write path was
 6. Same command again: Flagsmith answers "Experiment must be running", exit 1; the approval cannot be replayed.
 7. 12 brand-new identities asked the SDK API for `ship_demo_cta_v2` afterwards: 12 of 12 got `Get a quote today` (by chance alone, 1 in 4096).
 
-`demo/synthetic-traffic.mjs` needs `npm i @flagsmith/flagsmith@12.6.0` in a scratch folder; it is a demo fixture, not part of the skill.
+**Token cost (Track 04).** The agent reads only what the two commands print. `uv run --with tiktoken python3 scripts/token_cost.py decisions/disposable-demo-plan-2026-11-27.json decisions/disposable-demo-shipped-2026-11-27.json` counts the exact outputs with the o200k_base tokenizer: plan 307 + ship 335 = **642 tokens** for the whole cycle, no HTML and no screenshots. Other tokenizers give slightly different numbers.
+
+`demo/synthetic-traffic.mjs` needs
+ `npm i @flagsmith/flagsmith@12.6.0` in a scratch folder; it is a demo fixture, not part of the skill.
 
 ## Judging criteria we design for
 

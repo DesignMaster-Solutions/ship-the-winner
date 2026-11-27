@@ -1,0 +1,32 @@
+{
+  "environment": "9ahvpXPSTJxKD96pYKfdw8",
+  "experiment": 910,
+  "metric": 953,
+  "flag": "ship_demo_cta_v2",
+  "as_of": "2026-11-27T03:11:29.171227Z",
+  "threshold": 0.95,
+  "status": "approval_required",
+  "reason": "Threshold reached; review the proposal. This command cannot apply it.",
+  "arms": [
+    {
+      "arm": "control",
+      "exposures": 206,
+      "conversions": 13
+    },
+    {
+      "arm": "outcome",
+      "exposures": 194,
+      "conversions": 48
+    }
+  ],
+  "plan": {
+    "before": "Contact us",
+    "after": "Get a quote today",
+    "variant": "outcome",
+    "variant_id": 37661
+  },
+  "writes_executed": 0,
+  "limitation": "Raw warehouse counts include QA visits. No corrected probability is inferred. Review QA contamination and other metrics before any rollout.",
+  "chance_to_win": 0.9939400930144173,
+  "approval_digest": "86df4258488361b7ecb220a1e411aa3098be4cc46ae863f670332a89b853976f"
+}
