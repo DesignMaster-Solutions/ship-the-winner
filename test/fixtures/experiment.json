@@ -1,0 +1,59 @@
+{
+ "id": 525,
+ "feature": {
+  "id": 303970,
+  "name": "cta_text",
+  "type": "MULTIVARIATE",
+  "initial_value": "Contact us",
+  "multivariate_options": [
+   {
+    "id": 36795,
+    "uuid": "8c05065e-ae97-4dd8-9912-4c3604b35462",
+    "type": "unicode",
+    "integer_value": null,
+    "string_value": "Get a quote today",
+    "boolean_value": null,
+    "default_percentage_allocation": 50.0,
+    "key": "outcome"
+   }
+  ]
+ },
+ "name": "Hero CTA wording",
+ "hypothesis": "Naming the outcome on the hero button (Get a quote today) gets more first clicks than the generic Start a project, measured as the share of visitors who click it at least once during the 4-day hackathon window. Ship only at 95% win probability.",
+ "status": "running",
+ "metrics": [
+  {
+   "id": 569,
+   "metric": 509,
+   "metric_name": "First CTA click",
+   "aggregation": "occurrence",
+   "direction": "up",
+   "expected_direction": "increase",
+   "created_at": "2026-11-26T03:13:07.708122Z"
+  }
+ ],
+ "experiment_rollout": {
+  "enabled": true,
+  "rollout_percentage": 100.0,
+  "feature_state_value": {
+   "type": "string",
+   "value": "Start a project"
+  },
+  "multivariate_feature_state_values": [
+   {
+    "multivariate_feature_option": 36795,
+    "percentage_allocation": 50.0
+   }
+  ],
+  "audience": {
+   "match": "any",
+   "segments": []
+  }
+ },
+ "created_at": "2026-11-26T03:13:07.705438Z",
+ "updated_at": "2026-11-26T03:13:12.833798Z",
+ "started_at": "2026-11-26T03:13:12.831228Z",
+ "ended_at": null,
+ "rollout_decision": null,
+ "rollout_variant": null
+}

@@ -1,8 +1,8 @@
 # Ship the Winner: an Agent Skill that finishes a Flagsmith experiment
 
-Entry for **Toggle Wars: The Flagsmith Experimentation Hackathon** (WeMakeDevs, Nov 26-29, 2026), **Track 02 (AI Agents and Feature Flags)** and **Track 04 (Flagsmith Agent Skills)**. Rule 05 lets one project enter more than one track.
+Agent module of [First Click](https://github.com/DesignMaster-Solutions/first-click), our **single project** for Toggle Wars (WeMakeDevs, Nov 26-29, 2026). The same project can enter Tracks 01, 02 and 04. [Rules 01 and 05](https://www.wemakedevs.org/hackathons/flagsmith/rules) allow one project per team and multiple tracks per project; this repository is a component, not a second submission.
 
-Status (Nov 26, 2026): scope and skill outline. The working skill, tests and demo video land before the Nov 29 deadline.
+Status (Nov 26, 2026): the read/decide/propose path works through Flagsmith CLI 2.0.0 with tests. It performs two GET requests and cannot write, even if a result reaches 95%. Applying an approved rollout and verifying it are still pending; the whole-job workflow and its demo are not submission-ready yet.
 
 ## The job it finishes
 
@@ -11,9 +11,29 @@ Starting an experiment is one prompt. Ending it well is where teams stall: someo
 1. **Read**: find the running experiment for a flag and pull its current results (`flagsmith api`, read only).
 2. **Judge**: apply a decision rule written down before the test (ship only at 95% win probability or more; otherwise report "inconclusive" and change nothing).
 3. **Plan**: print the exact change it would make (flag, environment, value before and after) and stop.
-4. **Approve**: a human answers yes. Without it, nothing is written (`--no-input` runs stay read only).
-5. **Ship**: roll the winning value out to everyone with the same flag, no redeploy.
-6. **Leave a trail**: a short markdown record of the numbers, the decision and who approved it.
+4. **Approve / ship / verify** (pending): bind approval to the exact proposal, recheck current state, complete the experiment through Flagsmith, and read back the applied rollout. A human yes alone does not make the current reader writable.
+5. **Leave a trail**: the current reader emits a compact JSON decision record including the environment, flag, metric, result timestamp, raw counts and proposal.
+
+## Run the reader
+
+Requires Node.js 20 or newer and an existing Flagsmith account with access to the environment. Install the pinned CLI and authenticate using its official login (or a Master API key in `FLAGSMITH_API_KEY`):
+
+```sh
+npm ci
+npx flagsmith login
+npm test
+npm run --silent plan -- --environment cEah9PMHR4vhyqmBX4o9FJ --experiment 525 --metric 509 --flag cta_text
+```
+
+The example environment key is client-side and public by design; it grants no administrative access. Use your own environment, experiment, metric and flag for another project. Authentication errors fail with exit 1; they do not fall back to fixtures or a successful empty response. `--apply`, `--approve`, `--yes` and unknown arguments are refused before any request. Capture stdout to your chosen decision-record path only after checking the command exit status.
+
+The reader supports a running, two-arm experiment with string values and an increasing occurrence metric. It reads the exact experiment and its cached results with explicit GET, without creating traffic or requesting a refresh. Missing results return `pending`; missing inference or probability below 0.95 returns `inconclusive`; 0.95 or higher returns `approval_required` with the values before/after. The current value comes from the experiment rollout, not the feature's historical initial value. Results older than 24 hours, a failed refresh, malformed counts/probability or mismatched context fail closed. A reported sample-ratio mismatch below 0.01 blocks the proposal.
+
+The stored real fixture has 4 control and 2 treatment exposures, zero clicks and no inference. Two control visits were our QA checks, so these are **raw counts**, not six real customers. The reader does not recompute Bayesian inference after subtracting QA traffic. Review contamination and other metrics before rollout; the 95% comparison is a proposal rule, not an automatic production authorization. Synthetic winning fixtures exercise the boundary and are never presented as live results.
+
+## API contract
+
+The adapter follows Flagsmith's [experiment service](https://github.com/Flagsmith/flagsmith/blob/main/frontend/common/services/useExperiment.ts) and [response types](https://github.com/Flagsmith/flagsmith/blob/main/frontend/common/types/responses.ts): `api/v1/environments/{key}/experiments/{id}/` and its `results/` endpoint, whose body wraps the snapshot in `results`. `chance_to_win` is a number from 0 to 1. Tests inject only the transport; the planner consumes the same payload shape as the real CLI.
 
 ## Real data, not a toy
 

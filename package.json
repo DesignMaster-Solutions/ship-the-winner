@@ -1,0 +1,13 @@
+{
+  "name": "ship-the-winner",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "plan": "node scripts/read-plan.mjs"
+  },
+  "devDependencies": {
+    "@flagsmith/cli": "2.0.0"
+  },
+  "engines": { "node": ">=20" }
+}

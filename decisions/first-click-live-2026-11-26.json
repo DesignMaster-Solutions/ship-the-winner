@@ -1,0 +1,25 @@
+{
+  "environment": "cEah9PMHR4vhyqmBX4o9FJ",
+  "experiment": 525,
+  "metric": 509,
+  "flag": "cta_text",
+  "as_of": "2026-11-26T22:04:05.703086Z",
+  "threshold": 0.95,
+  "status": "inconclusive",
+  "reason": "No inference yet; leave the running experiment unchanged",
+  "arms": [
+    {
+      "arm": "control",
+      "exposures": 4,
+      "conversions": 0
+    },
+    {
+      "arm": "outcome",
+      "exposures": 2,
+      "conversions": 0
+    }
+  ],
+  "plan": null,
+  "writes_executed": 0,
+  "limitation": "Raw warehouse counts include QA visits. No corrected probability is inferred. Review QA contamination and other metrics before any rollout."
+}

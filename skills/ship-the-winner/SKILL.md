@@ -1,17 +1,14 @@
 ---
 name: ship-the-winner
-description: Finish a Flagsmith experiment safely with the Flagsmith CLI. Reads the running experiment's results, applies the decision rule written before the test, prints the exact rollout it would make, waits for a human yes, then rolls the winner out with the same flag and writes a decision record. Use when asked to end, read, call or ship the winner of a Flagsmith A/B test.
+description: Read a Flagsmith A/B experiment and propose its winning rollout through the Flagsmith CLI. Use when asked to interpret results, call a winner or prepare the end of an experiment. The current version stops at a read-only proposal; applying a rollout is not implemented.
 ---
 
 # Ship the winner
 
-Outline (Nov 26). Each step becomes a tested CLI call before the deadline.
+This skill is the agent module of the single First Click hackathon project. Run commands from this repository's root; setup and supported experiment types are in `README.md`.
 
-1. Context: `flagsmith config --json` (project, environment). Stop if no project is bound.
-2. Find the experiment for the flag: `flagsmith api` GET on the project's experiments, filtered with `--jq` to the one whose feature name matches and status is running.
-3. Results: `flagsmith api` GET on that experiment's results, `--jq` down to arms, exposures, conversions and win probability.
-4. Decide with the rule given by the user (default: ship only if a variant has at least 95% win probability). Below the bar: report "inconclusive", list the numbers, change nothing, stop.
-5. Plan: print flag, environment, current value, new value. Do not write.
-6. Ask the human. Only an explicit yes continues. Under `--no-input`, stop here.
-7. Ship with the same flag (no redeploy), then read the flag back with `flagsmith evaluate` and confirm the new value.
-8. Write `decisions/<flag>-<date>.md`: hypothesis, numbers, rule, decision, approver.
+1. Establish the environment key, experiment ID, metric ID and flag name from the user's task. Complete when all four are explicit. Use `npx flagsmith auth status --json --no-input` to confirm the active account; if authentication is missing, follow the official `npx flagsmith login` flow. Credentials stay in the CLI store or environment, outside prompts and decision files.
+2. Run `npm run --silent plan -- --environment KEY --experiment ID --metric ID --flag NAME`. The helper performs only GET requests using CLI 2.0.0, validates the context, and emits the decision. Complete only with exit 0 and valid JSON; a read error requires fixing access/context, never substituting synthetic data.
+3. Read `status` and `reason`. `pending` means no computed results. `inconclusive` means the predeclared 95% rule was not met. `blocked` means a sample-ratio problem needs investigation. In all three cases, report the timestamp and raw counts and leave the experiment unchanged.
+4. For `approval_required`, show the environment, flag, before/after values and probability. Explain the reported limitations, especially QA traffic and metrics not assessed. The current helper cannot apply the plan: record it as a proposal, with `writes_executed: 0`. Stop here even if approval is supplied; the apply/verify implementation is pending.
+5. Save the successful JSON to the user's chosen decision-record location. Report whether this was a live read or the offline test fixture. Complete when the record and its provenance are available; no successful rollout claim is supported by this version.
