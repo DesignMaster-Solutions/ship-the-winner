@@ -2,7 +2,7 @@
 
 Agent module of [First Click](https://github.com/DesignMaster-Solutions/first-click), our **single project** for Toggle Wars (WeMakeDevs, Nov 26-29, 2026). The same project can enter Tracks 01, 02 and 04. [Rules 01 and 05](https://www.wemakedevs.org/hackathons/flagsmith/rules) allow one project per team and multiple tracks per project; this repository is a component, not a second submission.
 
-Status (Nov 27, 2026): read/decide/propose and approve/ship/verify work through Flagsmith CLI 2.0.0 with tests. `plan` performs two GETs and never writes. `ship` writes once, only with the approval digest printed by `plan`, after re-reading and re-deciding. The live First Click experiment is still inconclusive, so `ship` against it refuses with exit 1 and no write. The demo video is still pending.
+Status (Nov 27, 2026): read/decide/propose and approve/ship/verify work through Flagsmith CLI 2.0.0 with tests. `plan` performs two GETs and never writes. `ship` writes once, only with the approval digest printed by `plan`, after re-reading and re-deciding. The live First Click experiment is still inconclusive, so `ship` against it refuses with exit 1 and no write. The full cycle has been proven end to end against real Flagsmith in a disposable environment (see *End-to-end proof* below). The demo video is still pending.
 
 ## The job it finishes
 
@@ -39,7 +39,22 @@ The adapter follows Flagsmith's [experiment service](https://github.com/Flagsmit
 
 It is built and tested against our own live experiment from Track 01 (https://github.com/DesignMaster-Solutions/first-click): flag `cta_text`, metric `First CTA click`, experiment `Hero CTA wording` on designmastersolutions.com. If that test ends inconclusive, the skill has to say so and ship nothing, and that is the first case we test.
 
+## End-to-end proof on real Flagsmith (disposable, synthetic traffic)
+
+The live experiment cannot reach 95% inside the hackathon, so the write path was proven on a separate environment, `ship-demo-disposable`, with its own flag `ship_demo_cta_v2` and metric `Demo CTA click` (event `demo_click`). The site's `cta_text` flag and experiment 525 were never touched (still `running`, `rollout_decision: null` after the run). All traffic below is **synthetic** and labelled as such; it is not customer data.
+
+1. `node demo/synthetic-traffic.mjs <env key> 400 r2` (official `@flagsmith/flagsmith` 12.6.0 SDK with `enableEvents`, one identity per visit, `getExperimentFlag` for the exposure, `trackEvent('demo_click')` at 12% for control and 30% for the variant). Local tally: control 206/13, outcome 194/48.
+2. `flagsmith api .../experiments/910/results/refresh/ -X POST` (setup step, not part of the skill). Flagsmith's own Bayesian result: `chance_to_win` 0.9939, lift 2.92.
+3. `npm run --silent plan -- --environment <env> --experiment 910 --metric 953 --flag ship_demo_cta_v2` returned `approval_required`, before `Contact us`, after `Get a quote today`, digest `86df4258…976f`, `writes_executed: 0`.
+4. `ship` with a wrong digest: refused, exit 1, no write.
+5. `ship` with the printed digest: one `POST complete/`, read back `completed` / `variant` / `37661`, `status: shipped`, exit 0. Record: [`decisions/disposable-demo-shipped-2026-11-27.json`](decisions/disposable-demo-shipped-2026-11-27.json).
+6. Same command again: Flagsmith answers "Experiment must be running", exit 1; the approval cannot be replayed.
+7. 12 brand-new identities asked the SDK API for `ship_demo_cta_v2` afterwards: 12 of 12 got `Get a quote today` (by chance alone, 1 in 4096).
+
+`demo/synthetic-traffic.mjs` needs `npm i @flagsmith/flagsmith@12.6.0` in a scratch folder; it is a demo fixture, not part of the skill.
+
 ## Judging criteria we design for
+
 
 - Track 02: uses the Flagsmith CLI and API; saves the manual read-decide-rollout loop; a human approves every write; clear output.
 - Track 04: completes the whole job, token efficient (JSON + `--jq`, no page scraping), creative use of the CLI, safe around production (read only by default, plan before write, explicit approval).
